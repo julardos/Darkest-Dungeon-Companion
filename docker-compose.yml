@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dd_backend
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: dd_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - API_TARGET=http://backend:8000
+    volumes:
+      - ./frontend/src:/app/src:delegated
+    depends_on:
+      backend:
+        condition: service_healthy
